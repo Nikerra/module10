@@ -7,11 +7,13 @@ import org.example.service.Calc;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
 @Controller
@@ -29,8 +31,6 @@ public class CalcController {
 
     @Value("${default.min.amount}")
     private Integer minAmount;
-
-    private String result;
 
     private final Calc calc;
 
@@ -58,9 +58,10 @@ public class CalcController {
     }
 
     @GetMapping("/webapp/result")
-    public ModelAndView result() {
+    public ModelAndView result(Model model) {
         ModelAndView modelAndView= new ModelAndView();
         modelAndView.setViewName("/result.jsp");
+        String result = (String) model.getAttribute("result");
         modelAndView.addObject("result", result);
         return modelAndView;
     }
@@ -72,7 +73,7 @@ public class CalcController {
         return modelAndView;
     }
     @PostMapping("/webapp/calc")
-    public String calcOperation(@RequestParam String amount, String percent, String years) {
+    public String calcOperation(@RequestParam String amount, String percent, String years, Model model, RedirectAttributes attributes) {
         int amountInt;
         int percentInt;
         int yearsInt;
@@ -88,7 +89,9 @@ public class CalcController {
                     return "redirect:/webapp/errorFormat";
                 } else {
                     InfoCalc infoCalc = new InfoCalc(amountInt,percentInt,yearsInt);
-                    result = String.valueOf(calc.sum(infoCalc));
+                    String result = String.valueOf(calc.sum(infoCalc));
+                    attributes.addFlashAttribute("result", result);
+                    model.addAttribute("result", result);
                     return "redirect:/webapp/result/";
                 }
             }
